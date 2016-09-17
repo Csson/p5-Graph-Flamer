@@ -5,7 +5,7 @@
 doctype: dist
 
 header:
-  name: Graph-Flamer
+  name: Graph-Flames
   author:
     - Erik Carlsson <info@code301.com>
   license: Perl_5
