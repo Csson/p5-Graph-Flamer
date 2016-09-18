@@ -160,9 +160,10 @@ sub _build_svg($self) {
 
     my $svg = SVG->new(
         $self->svg_config->%*,
-        height => $self->max_depth * ($self->flame_config->{'depth_height'} + 3),
+        height => $self->max_depth * ($self->flame_config->{'depth_height'}),
         'data-font-width' => $self->flame_config->{'font_width'},
     );
+    $svg->g(id => 'search-results');
     my $x = $self->svg_config->{'width'};
     my $y = $self->max_depth * $self->flame_config->{'depth_height'} - $self->flame_config->{'depth_height'};
 
@@ -174,10 +175,10 @@ sub _build_svg($self) {
 sub draw($self, $svg, $chain, $x, $y) {
     my $width = sprintf '%.3f' => $chain->total_ticks / $self->ticks_per_pixel;
     my $seconds = $chain->total_ticks / $self->ticks_per_second;
-    my $percent = sprintf '%.2f%%' => $chain->total_ticks / $self->total_ticks * 100;
+    my $percent = sprintf '%.2f' => $chain->total_ticks / $self->total_ticks * 100;
     my $ms = format_number(int($seconds * 1_000_000));
     my @classes = ('chain', ($self->color_class_for_name($chain->name) || 'chain color-0'));
-    push @classes => 'zoom-unwanted' if $width < 0.1;
+    push @classes => 'zoom-too-thin' if $width < 0.1;
 
     my $g = $svg->tag(g =>
         class => join (' ' => @classes),
@@ -186,7 +187,7 @@ sub draw($self, $svg, $chain, $x, $y) {
         'data-percent' => $percent,
         'data-name' => $chain->name,
     );
-    $g->title(-cdata => sprintf '%s (%s microseconds, %s)', $chain->name, $ms, $percent);
+    $g->title(-cdata => sprintf '%s (%s microseconds, %s%%)', $chain->name, $ms, $percent);
 
     $g->rectangle(x => $x - $width,
                   y => $y,
