@@ -91,7 +91,7 @@ sub _build_color_class($self) {
     for my $groupkey (@sorted_groups) {
 
         for my $name ($groups->{ $groupkey }->@*) {
-            $names->{ $name }{'class'} = "color-$color_id";
+            $names->{ $name }{'class'} = "c-$color_id";
         }
         $color_id += 1 if $color_id < 8;
     }
@@ -100,7 +100,7 @@ sub _build_color_class($self) {
 }
 sub color_class_for_name($self, $name) {
     $name = substr $name, 0, 15;
-    return 'color-bar' if !$self->color_class->{ $name }{'class'};
+    return 'c-bar' if !$self->color_class->{ $name }{'class'};
     return $self->color_class->{ $name }{'class'};
 }
 has total_ticks => (
@@ -174,6 +174,9 @@ sub _build_svg($self) {
         'data-font-width' => $self->flame_config->{'font_width'},
     );
     $svg->g(id => 'search-results');
+
+    # put all chains in a <g> -> saves setting a css class
+    my $chaing = $svg->g(id => 'chains');
     my $x = $self->svg_config->{'width'};
     my $y = $self->max_depth * $self->flame_config->{'depth_height'} - $self->flame_config->{'depth_height'};
 
@@ -211,15 +214,17 @@ sub draw($self, $svg, $chain, $x, $y) {
 
     my $max_text_length = int ($width / $self->flame_config->{'font_width'});
     my $text = length $chain->name > $max_text_length ? $max_text_length >= 3 ? substr($chain->name, 0, $max_text_length - 1) . '…'
-                                                      :                         ''
+                                                      :                         undef
              :                                          $chain->name
              ;
 
-    $g->text(x => $x - $width + 2.5,
-             y => $y + 13,
-             -cdata => $text,
-    );
-    $g->line(x1 => $x, y1 => $y, x2 => $x, y2 => $y + $self->flame_config->{'depth_height'}, class => 'border-right');
+    # only create <text> tags for blobs with visible text, the rest will fetch them from the first one that got it (see above)
+    if(defined $text) {
+        $g->text(x => $x - $width + 2.5,
+                 y => $y + 13,
+                 -cdata => $text,
+        );
+    }
 
     my $child_x = $x;
     my $child_y = $y - $self->flame_config->{'depth_height'};
