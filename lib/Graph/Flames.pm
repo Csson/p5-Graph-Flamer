@@ -259,7 +259,6 @@ sub draw($self, $svg, $chain, $x, $y, $stack_ids) {
         id => $id,
         %referattr,
     );
-   # $g->title(-cdata => sprintf '%s (%s microseconds, %s%%)', $chain->name, $ms, $percent);
 
     $g->rectangle(x => $x - $width,
                   y => $y,
@@ -282,8 +281,6 @@ sub draw($self, $svg, $chain, $x, $y, $stack_ids) {
                  -cdata => $text,
         );
     }
-    # The *first* line in <g> is expected to be the right border (saves setting a css class)
-    $g->line(x1 => $x, y1 => $y, x2 => $x, y2 => $y + $self->flame_config->{'depth_height'});
 
     my $child_x = $x;
     my $child_y = $y - $self->flame_config->{'depth_height'};
