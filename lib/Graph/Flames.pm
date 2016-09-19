@@ -14,6 +14,7 @@ use SVG;
 use Data::Printer;
 use List::Util qw/sum any uniq none/;
 use Number::Format qw/format_number/;
+use Convert::AnyBase;
 use Graph::Flames::CallStack;
 use Graph::Flames::CallChain;
 use experimental qw/postderef signatures/;
@@ -155,6 +156,15 @@ has svg => (
     lazy => 1,
     builder => 1,
 );
+has converter => (
+    is => 'ro',
+    isa => Any,
+    lazy => 1,
+    builder => 1,
+);
+sub _build_converter($self) {
+    Convert::AnyBase->new(set => join '', (0..9, 'a'..'z', 'A'..'Z'));
+}
 
 sub _build_svg($self) {
 
@@ -179,6 +189,8 @@ sub draw($self, $svg, $chain, $x, $y) {
     my $ms = format_number(int($seconds * 1_000_000));
     my @classes = ('chain', ($self->color_class_for_name($chain->name) || 'chain color-0'));
     push @classes => 'zoom-too-thin' if $width < 0.1;
+    my $id = 's-'.$self->converter->encode($stack_ids->[-1]);
+    push @classes => map { 's-'.$self->converter->encode($_) } $stack_ids->@*;
 
     my $g = $svg->tag(g =>
         class => join (' ' => @classes),
