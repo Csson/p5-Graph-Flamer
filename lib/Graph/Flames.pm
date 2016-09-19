@@ -53,7 +53,8 @@ has svg_config => (
         return +{
             width => 1200,
             -inline => 1,
-            -nocredits => 1
+            -nocredits => 1,
+            -indent => '',
         };
     }
 );
@@ -170,15 +171,17 @@ sub _build_svg($self) {
 
     my $svg = SVG->new(
         $self->svg_config->%*,
-        height => $self->max_depth * ($self->flame_config->{'depth_height'}),
+        height => (2 + $self->max_depth) * $self->flame_config->{'depth_height'},
         'data-font-width' => $self->flame_config->{'font_width'},
+        'data-ticks-per-second' => $self->ticks_per_second,
     );
     $svg->g(id => 'search-results');
 
     # put all chains in a <g> -> saves setting a css class
     my $chaing = $svg->g(id => 'chains');
     my $x = $self->svg_config->{'width'};
-    my $y = $self->max_depth * $self->flame_config->{'depth_height'} - $self->flame_config->{'depth_height'};
+    my $y = (2 + $self->max_depth) * $self->flame_config->{'depth_height'} - $self->flame_config->{'depth_height'};
+
 
     $self->draw($svg, $self->callchain, $x, $y);
     return $svg;
